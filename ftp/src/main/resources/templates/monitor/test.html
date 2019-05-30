@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.w3.org/1999/html">
+<style type="text/css">
+    body {
+        background-color: gainsboro;
+        min-width: 660px;
+    }
+
+    #heading {
+        display: flex;
+        height: 50px;
+        line-height: 50px;
+        padding: 30px 15% 20px;
+    }
+
+    .name {
+        padding-right: 10px;
+        text-align: center;
+    }
+
+    #cameraId {
+        margin-right: 10px;
+        padding: 0 8px;
+        outline: none;
+    }
+
+    .inp {
+        flex: 10;
+        margin-right: 10px;
+        outline: none;
+        padding-left: 15px;
+        border-radius: 10px;
+        border: none;
+    }
+
+    #button {
+        border: none;
+        padding: 0 40px;
+        outline: none;
+        border-radius: 10px;
+        background-color: skyblue;/*自己找个合适的好看的颜色换上*/
+
+    }
+
+</style>
+
+<head>
+    <meta charset="UTF-8">
+    <title>实贝科技</title>
+
+    <script type="text/javascript" src="jquery-3.3.1.min.js"></script>
+    <script src="layer/layer.js"></script>
+</head>
+
+<body>
+
+<div id="global">
+    <div id="heading">
+        <div class="name">相机编号：</div>
+        <select id="cameraId">
+            <option value="0001">1号</option>
+            <option value="0002">2号</option>
+            <option value="0003">3号</option>
+            <option value="0004">4号</option>
+        </select>
+        <input type="text" placeholder="请输入面单号" id="barCode" class="inp">
+        <button id="button">查询</button>
+    </div>
+    <div id="picDiv">
+
+    </div>
+    <script type="text/javascript">
+        $(function(){
+            $("button").click(function(){
+                $("#picDiv").empty();
+                var cameraId = $("select option:selected").val();
+                var barCode = $("#barCode").val();
+                if (!barCode){
+                    layer.msg("面单号不能为空");
+                    return;
+                }
+                if (barCode.length > 18) {
+                    layer.msg("请检查面单是否正确");
+                    return;
+                }
+                $.get("/getPicture?barCode="+barCode+"&cameraId="+cameraId,function(data){
+                    if (data.code == 1){
+                        // layer.msg("图片下载到 D:\\ftpDown下成功！！！");
+                        var list = data.data;
+                        var length = list.length;
+                        for (var i = 0; i < length; i++) {
+                            var name = list[i];
+                            var img = $("<img id=img"+i+" src=/getPicture1?pathName="+name+" style='width:600px;height:600px'>");
+                            $("#picDiv").show();
+                            $("#picDiv").append(img);
+                            /*if (length > 6) {
+                                layer.msg("当前页面最多展示6张图片，请去文件夹下查看");
+                            }*/
+                        }
+                    } else {
+                        layer.msg(data.msg);
+                    }
+                });
+            });
+        });
+        $("body").keydown(function() {
+            if (event.keyCode == "13") {
+                $("#button").click();
+            }
+        });
+
+        function clickToBigImg(){//绑定图片函数
+            //var clickImgId = $(this).attr("id");
+            var imgsrc = $(this).attr("src");
+            alert (imgsrc);
+            var opacityBottom = '<div id="opacityBottom" style="display: none"><img class="bigImg" src="'+ imgsrc +'" ></div>';
+            $(document.body).append(opacityBottom);
+            toBigImg();//变大函数
+        }
+        function toBigImg(){
+            $("#opacityBottom").addClass("opacityBottom");
+            $("#opacityBottom").show();
+            $("html,body").addClass("none-scroll");//下层不可滑动
+            $(".bigImg").addClass("bigImg");
+            /*隐藏*/
+            $("#opacityBottom").bind("click",clickToSmallImg);
+            $(".bigImg").bind("click",clickToSmallImg);
+            var imgHeight = $(".bigImg").prop("height");
+            if(imgHeight < h){
+                $(".bigImg").css({"top":(h-imgHeight)/2 + 'px'});
+
+            }else{
+                $(".bigImg").css({"top":'0px'});
+            }
+            function clickToSmallImg() {
+                $("html,body").removeClass("none-scroll");
+                $("#opacityBottom").remove();
+            }
+        };
+    </script>
+
+</div>
+</body>
+
+</html>

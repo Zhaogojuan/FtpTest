@@ -1,0 +1,21 @@
+---
+#dev
+server:
+  port: 8080
+  servlet:
+    context-path: /
+
+# 配置数据库相关信息
+spring:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://101.227.72.200:3306/orderautocategory?serverTimezone=CTT&useUnicode=true&characterEncoding=utf8&useSSL=false
+    username: mysql
+    password: mysql
+  thymeleaf:
+    prefix: classpath:/templates
+    suffix: .html
+    mode: HTML
+    encoding: utf-8
+    servlet.content-type: text/html
+    cache: false

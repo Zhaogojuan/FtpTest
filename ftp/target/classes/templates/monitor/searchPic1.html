@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.w3.org/1999/html">
+<style type="text/css">
+    @import url(https://fonts.googleapis.com/css?family=Open+Sans);
+
+    * {
+        -webkit-box-sizing: border-box;
+        -moz-box-sizing: border-box;
+        -ms-box-sizing: border-box;
+        -o-box-sizing: border-box;
+        box-sizing: border-box;
+    }
+
+    html {
+        width: 100%;
+        height: 100%;
+        /*overflow: hidden;*/
+    }
+
+    * {
+        box-sizing: border-box;
+    }
+
+    *:focus {
+        outline: none;
+    }
+
+    body {
+        font-family: Arial;
+        /*background-color: #1e4c4a;*/
+        background: #6a7074;
+        padding: 50px;
+    }
+
+    /*定义全局的div布局*/
+    div#global {
+        /*设置宽度，设置百分比可以根据浏览器自适应宽度*/
+        width: 100%;
+        /*设置高度，950px是设置是实体高度，不能自适应的*/
+        height: 800px;
+        /*设置背景颜色，方便区分布局*/
+        text-align: center;
+    }
+
+    /*定义头部布局，前面的div可以不用写，#号前面默认有个id，凡事定义了id的标签，都可以用#号来表示*/
+    #heading {
+        left: 100px;
+        width: auto;
+        height: 65px;
+        /*float: left;*/
+    }
+    #picDiv{
+        top: 200px;
+        width: auto;
+        height: 700px;
+        float: left;
+    }
+    #barCode{
+        width: 500px;
+        height: 70px;
+    }
+    #button{
+        width: 250px;
+        height: 70px;
+    }
+    /*全屏显示大图*/
+    .opacityBottom{
+        width: 100%;
+        height: 100%;
+        position: fixed;
+        background:rgba(0,0,0,0.8);
+        z-index:1000;
+        top: 0;
+        left: 0
+    }
+    .none-scroll{
+        overflow: hidden;
+        height: 100%;
+    }
+    .bigImg{
+        width:100%;
+        left:0%;
+        top:10%;
+        position:fixed;
+        z-index: 10001;
+
+    }
+</style>
+<head>
+    <meta charset="UTF-8">
+    <title>实贝科技</title>
+    <script type="text/javascript" src="jquery-3.3.1.min.js"></script>
+    <script src="layer/layer.js"></script>
+</head>
+<body>
+    <div id="global">
+        <div id="heading">
+            相机编号：
+            <select id="cameraId">
+                <option value="0001">1号</option>
+                <option value="0002">2号</option>
+                <option value="0003">3号</option>
+                <option value="0004">4号</option>
+            </select>
+            <input type="text" id="barCode" onkeyup="(this.v=function(){this.value=this.value.replace(/[^0-9-]+/,'');}).call(this)" placeholder="请输入面单号">
+            <button id="button">查询</button>
+        </div>
+        <div id="picDiv">
+        </div>
+        <script type="text/javascript">
+            $(function(){
+                $("button").click(function(){
+                    $("#picDiv").empty();
+                    var cameraId = $("select option:selected").val();
+                    var barCode = $("#barCode").val();
+                    if (!barCode){
+                        layer.msg("面单号不能为空");
+                        return;
+                    }
+                    if (barCode.length > 18) {
+                        layer.msg("请检查面单是否正确");
+                        return;
+                    }
+                    $.get("/getPicture?barCode="+barCode+"&cameraId="+cameraId,function(data){
+                        if (data.code == 1){
+                            // layer.msg("图片下载到 D:\\ftpDown下成功！！！");
+                            var list = data.data;
+                            var length = list.length;
+                            for (var i = 0; i < length; i++) {
+                                var name = list[i];
+                                var img = $("<img id=img"+i+" src=/getPicture1?pathName="+name+" style='width:600px;height:600px'>");
+                                $("#picDiv").show();
+                                $("#picDiv").append(img);
+                                /*if (length > 6) {
+                                    layer.msg("当前页面最多展示6张图片，请去文件夹下查看");
+                                }*/
+                            }
+                        } else {
+                            layer.msg(data.msg);
+                        }
+                    });
+                });
+            });
+            $("body").keydown(function() {
+                if (event.keyCode == "13") {
+                    $("#button").click();
+                }
+            });
+
+            function clickToBigImg(){//绑定图片函数
+                //var clickImgId = $(this).attr("id");
+                var imgsrc = $(this).attr("src");
+                alert (imgsrc);
+                var opacityBottom = '<div id="opacityBottom" style="display: none"><img class="bigImg" src="'+ imgsrc +'" ></div>';
+                $(document.body).append(opacityBottom);
+                toBigImg();//变大函数
+            }
+            function toBigImg(){
+                $("#opacityBottom").addClass("opacityBottom");
+                $("#opacityBottom").show();
+                $("html,body").addClass("none-scroll");//下层不可滑动
+                $(".bigImg").addClass("bigImg");
+                /*隐藏*/
+                $("#opacityBottom").bind("click",clickToSmallImg);
+                $(".bigImg").bind("click",clickToSmallImg);
+                var imgHeight = $(".bigImg").prop("height");
+                if(imgHeight < h){
+                    $(".bigImg").css({"top":(h-imgHeight)/2 + 'px'});
+
+                }else{
+                    $(".bigImg").css({"top":'0px'});
+                }
+                function clickToSmallImg() {
+                    $("html,body").removeClass("none-scroll");
+                    $("#opacityBottom").remove();
+                }
+            };
+        </script>
+    </div>
+</body>
+</html>
